@@ -3,10 +3,14 @@ pub mod app;
 pub mod error_template;
 pub mod fileserv;
 
+pub mod api;
+pub mod pages;
+
 cfg_if! { if #[cfg(feature = "hydrate")] {
     use leptos::*;
     use wasm_bindgen::prelude::wasm_bindgen;
     use crate::app::*;
+    use crate::api::*;
 
     #[wasm_bindgen]
     pub fn hydrate() {
