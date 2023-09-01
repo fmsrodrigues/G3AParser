@@ -3,6 +3,8 @@ pub mod app;
 pub mod error_template;
 pub mod fileserv;
 
+pub mod model;
+
 pub mod api;
 pub mod pages;
 
