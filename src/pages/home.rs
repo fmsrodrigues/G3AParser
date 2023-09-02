@@ -4,8 +4,6 @@ use leptos::{
     *,
 };
 
-use crate::api::parse::parse_log;
-
 /// Renders the home page of your application.
 #[component]
 pub fn HomePage(cx: Scope) -> impl IntoView {
@@ -21,25 +19,23 @@ pub fn HomePage(cx: Scope) -> impl IntoView {
     //     }
     // };
 
-    let parse_log = create_action(cx, move |_ev: &SubmitEvent| {
-        let file_path = log_file_ref.get().expect("fileee").value();
+    // let parse_log = create_action(cx, move |_ev: &SubmitEvent| {
+    //     let file_path = log_file_ref.get().expect("fileee").value();
 
-        log!("{}", file_path);
+    //     log!("{}", file_path);
 
-        let log = match log_text_ref.get() {
-            Some(log) => {
-                if log.value().is_empty() {
-                    "empty".to_string()
-                } else {
-                    log.value()
-                }
-            }
-            None => "failed".to_string(),
-        };
-        log!("{}", format!("log text ref: {:?}", log));
-
-        parse_log(log)
-    });
+    //     let log = match log_text_ref.get() {
+    //         Some(log) => {
+    //             if log.value().is_empty() {
+    //                 "empty".to_string()
+    //             } else {
+    //                 log.value()
+    //             }
+    //         }
+    //         None => "failed".to_string(),
+    //     };
+    //     log!("{}", format!("log text ref: {:?}", log));
+    // });
 
     view! { cx,
         <h1>"Quake 3 Arena server log parser"</h1>
@@ -118,7 +114,7 @@ pub fn HomePage(cx: Scope) -> impl IntoView {
             <form on:submit=move |ev| {
                 ev.prevent_default();
 
-                parse_log.dispatch(ev)
+                // parse_log.dispatch(ev)
             }>
                 <p>"An file input will have preference over a pasted log"</p>
                 <label>
