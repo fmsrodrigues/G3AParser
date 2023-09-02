@@ -1,41 +1,59 @@
-use leptos::{
-    ev::SubmitEvent,
-    html::{Input, Textarea},
-    *,
-};
+use std::collections::HashMap;
 
-/// Renders the home page of your application.
+use leptos::{html::Input, *};
+
+use wasm_bindgen::prelude::wasm_bindgen;
+
+use reqwest::{multipart, Client, Url};
+
+use crate::model::parser::MatchRecord;
+
+#[wasm_bindgen]
+pub async fn file_to_u8(file: web_sys::File) -> Result<js_sys::Uint8Array, wasm_bindgen::JsValue> {
+    let buffer = wasm_bindgen_futures::JsFuture::from(file.array_buffer())
+        .await
+        .unwrap();
+    let u8_array = js_sys::Uint8Array::new(&buffer);
+    Ok(u8_array)
+}
+
 #[component]
 pub fn HomePage(cx: Scope) -> impl IntoView {
     let log_file_ref = create_node_ref::<Input>(cx);
-    let log_text_ref = create_node_ref::<Textarea>(cx);
 
-    // let submit_button_handler = move |_event: web_sys::Event| {
-    //     let target = log_file_ref.get().unwrap();
-    //     if let Some(files) = target.files() {
-    //         if files.length().gt(&0) {
-    //             log!("{}", "Here");
-    //         }
-    //     }
-    // };
+    pub fn submit_callback(file_ref: NodeRef<Input>) -> impl Fn(web_sys::Event) {
+        move |_event: web_sys::Event| {
+            let file_input = file_ref.get().expect("could not capture file input");
 
-    // let parse_log = create_action(cx, move |_ev: &SubmitEvent| {
-    //     let file_path = log_file_ref.get().expect("fileee").value();
+            let file = file_input.files().unwrap().get(0).unwrap();
 
-    //     log!("{}", file_path);
+            let buffer = file_to_u8(file);
 
-    //     let log = match log_text_ref.get() {
-    //         Some(log) => {
-    //             if log.value().is_empty() {
-    //                 "empty".to_string()
-    //             } else {
-    //                 log.value()
-    //             }
-    //         }
-    //         None => "failed".to_string(),
-    //     };
-    //     log!("{}", format!("log text ref: {:?}", log));
-    // });
+            spawn_local(async move {
+                let buffer = buffer.await.unwrap();
+                let mut body = vec![0; buffer.length() as usize];
+                buffer.copy_to(&mut body[..]);
+
+                let file = multipart::Part::bytes::<Vec<u8>>(body).file_name("server-log");
+                let form = reqwest::multipart::Form::new().part("log", file);
+
+                let client = Client::new();
+
+                let url = Url::parse("http://127.0.0.1:3000/c/parse_log_file").unwrap();
+
+                let res = client.post(url).multipart(form).send().await;
+                let res_body = res
+                    .expect("failed to get response")
+                    .json::<HashMap<String, MatchRecord>>()
+                    .await
+                    .expect("failed to get payload");
+
+                log!("response: {:?}", res_body);
+            })
+        }
+    }
+
+    let submit_handler = submit_callback(log_file_ref);
 
     view! { cx,
         <h1>"Quake 3 Arena server log parser"</h1>
@@ -111,37 +129,20 @@ pub fn HomePage(cx: Scope) -> impl IntoView {
             </pre>
         </div>
         <div>
-            <form on:submit=move |ev| {
-                ev.prevent_default();
-
-                // parse_log.dispatch(ev)
-            }>
+            <div>
                 <p>"An file input will have preference over a pasted log"</p>
                 <label>
-                    <span>"Upload a server log file"</span>
+                    <span>"Upload a server log file:"</span>
                     <input
                         type="file"
-                        node_ref=log_file_ref
                         id="file-input"
                         _ref=log_file_ref
-                        class="upload"
                         name="file-input"
-                        accept="application/log"
-                        // on:change=submit_button_handler
+                        accept="application/text"
+                        on:change=submit_handler
                     />
                 </label>
-                <p>"Or"</p>
-                <label>
-                    <span>"Paste the log text here"</span>
-                    <textarea
-                        type="text"
-                        placeholder="Paste the log text here"
-                        node_ref=log_text_ref
-                    />
-                </label>
-
-                <button type="submit">"Parse"</button>
-            </form>
+            </div>
         </div>
     }
 }

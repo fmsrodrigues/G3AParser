@@ -41,7 +41,6 @@ impl Parser {
             Parser::parse_line(line, &mut matches, &mut current_match)
         }
 
-        dbg!(matches.clone());
         matches
     }
 

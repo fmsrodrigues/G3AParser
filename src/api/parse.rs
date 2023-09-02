@@ -9,15 +9,13 @@ use std::collections::HashMap;
 
 use crate::model::parser::{Parser, MatchRecord};
 
-#[axum_macros::debug_handler]
 pub async fn parse_log_file(mut multipart: Multipart) -> Result<Json<HashMap<String, MatchRecord>>, (StatusCode, String)> {
     let mut parsed_log = HashMap::new();
 
     while let Some(field) = multipart.next_field().await.map_err(|err| (StatusCode::BAD_REQUEST, err.to_string()))? {
-        let is_text_file = field.content_type().unwrap().to_string() == "text/plain";
         let is_log_field = field.name().unwrap().to_string() == "log";
 
-        if is_text_file && is_log_field {
+        if is_log_field {
             let base_path = "./tmp/";
             let random_prefix_filename = uuid::Uuid::new_v4().to_string();
             let complete_path = format!("{base_path}{random_prefix_filename}_log.txt");
@@ -38,6 +36,7 @@ pub async fn parse_log_file(mut multipart: Multipart) -> Result<Json<HashMap<Str
         }
     }
 
+    dbg!(parsed_log.clone());
     Ok(Json(parsed_log))
 }
 }}
