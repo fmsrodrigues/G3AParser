@@ -5,6 +5,7 @@ async fn main() {
     use leptos::*;
     use leptos_axum::{generate_route_list, LeptosRoutes};
 
+    use q3aparser::api::parse::*;
     use q3aparser::app::*;
     use q3aparser::fileserv::file_and_error_handler;
 
@@ -22,6 +23,7 @@ async fn main() {
 
     // build our application with a route
     let app = Router::new()
+        .route("/api/parse_log_file", post(parse_log_file))
         .route("/api/*fn_name", post(leptos_axum::handle_server_fns))
         .leptos_routes(&leptos_options, routes, |cx| view! { cx, <App/> })
         .fallback(file_and_error_handler)

@@ -12,7 +12,7 @@ cfg_if! { if #[cfg(feature = "hydrate")] {
     use leptos::*;
     use wasm_bindgen::prelude::wasm_bindgen;
     use crate::app::*;
-    use crate::api::*;
+    // use crate::api::*;
 
     #[wasm_bindgen]
     pub fn hydrate() {
