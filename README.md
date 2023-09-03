@@ -33,6 +33,10 @@ Addtionally, Cargo.toml may need updating as new versions of the dependencies ar
 ## Running your project
 
 ```bash
+npx tailwindcss -i ./input.css -o ./style/output.css --watch
+```
+Then run
+```bash
 cargo leptos watch
 ```
 

@@ -30,8 +30,6 @@ pub async fn parse_log_file(mut multipart: Multipart) -> Result<Json<HashMap<Str
 
             fs::remove_file(file_path).map_err(|err| (StatusCode::INTERNAL_SERVER_ERROR, err.to_string()))?;
         } else {
-            println!("Should return an error here");
-
             return Err((StatusCode::BAD_REQUEST, "Invalid file type or field name".to_string()));
         }
     }

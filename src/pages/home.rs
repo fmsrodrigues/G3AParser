@@ -43,7 +43,7 @@ pub fn HomePage(cx: Scope) -> impl IntoView {
 
                 let client = Client::new();
 
-                let url = Url::parse("http://127.0.0.1:3000/c/parse_log_file").unwrap();
+                let url = Url::parse("http://127.0.0.1:3000/api/parse_log_file").unwrap();
 
                 let res = client.post(url).multipart(form).send().await;
                 let res_body = res
@@ -70,7 +70,6 @@ pub fn HomePage(cx: Scope) -> impl IntoView {
                             .parse::<i32>()
                             .unwrap();
 
-                    log!("{:?} {:?}", a, b);
                     a.cmp(&b)
                 });
 
@@ -81,181 +80,169 @@ pub fn HomePage(cx: Scope) -> impl IntoView {
 
     let submit_handler = submit_callback(log_file_ref, set_logs);
 
-    create_effect(cx, move |_| {
-        log!("{:?}", &logs.get());
-    });
-
     view! { cx,
-        <h1>"Quake 3 Arena server log parser"</h1>
-        <div>
-            <p>
-                "This applications focus on parse and represent data from a Quake 3 Arena server log in a
-                more human readable version the file or text expected to be parsed has the following format:"
-            </p>
-            <pre>
-                {r#"
-                    0:00 ------------------------------------------------------------
-                    0:00 InitGame: \sv_floodProtect\1\sv_maxPing\0\sv_minPing\0\sv_maxRate\10000\sv_minRate\0\sv_hostname\Code Miner Server\g_gametype\0\sv_privateClients\2\sv_maxclients\16\sv_allowDownload\0\dmflags\0\fraglimit\20\timelimit\15\g_maxGameClients\0\capturelimit\8\version\ioq3 1.36 linux-x86_64 Apr 12 2009\protocol\68\mapname\q3dm17\gamename\baseq3\g_needpass\0
-                    0:25 ClientConnect: 2
-                    0:25 ClientUserinfoChanged: 2 n\Dono da Bola\t\0\model\sarge/krusade\hmodel\sarge/krusade\g_redteam\\g_blueteam\\c1\5\c2\5\hc\95\w\0\l\0\tt\0\tl\0
-                    0:27 ClientUserinfoChanged: 2 n\Mocinha\t\0\model\sarge\hmodel\sarge\g_redteam\\g_blueteam\\c1\4\c2\5\hc\95\w\0\l\0\tt\0\tl\0
-                    0:27 ClientBegin: 2
-                    0:29 Item: 2 weapon_rocketlauncher
-                    0:35 Item: 2 item_armor_shard
-                    0:35 Item: 2 item_armor_shard
-                    0:35 Item: 2 item_armor_shard
-                    0:35 Item: 2 item_armor_combat
-                    0:38 Item: 2 item_armor_shard
-                    0:38 Item: 2 item_armor_shard
-                    0:38 Item: 2 item_armor_shard
-                    0:55 Item: 2 item_health_large
-                    0:56 Item: 2 weapon_rocketlauncher
-                    0:57 Item: 2 ammo_rockets
-                    0:59 ClientConnect: 3
-                    0:59 ClientUserinfoChanged: 3 n\Isgalamido\t\0\model\xian/default\hmodel\xian/default\g_redteam\\g_blueteam\\c1\4\c2\5\hc\100\w\0\l\0\tt\0\tl\0
-                    1:01 ClientUserinfoChanged: 3 n\Isgalamido\t\0\model\uriel/zael\hmodel\uriel/zael\g_redteam\\g_blueteam\\c1\5\c2\5\hc\100\w\0\l\0\tt\0\tl\0
-                    1:01 ClientBegin: 3
-                    1:02 Item: 3 weapon_rocketlauncher
-                    1:04 Item: 2 item_armor_shard
-                    1:04 Item: 2 item_armor_shard
-                    1:04 Item: 2 item_armor_shard
-                    1:06 ClientConnect: 4
-                    1:06 ClientUserinfoChanged: 4 n\Zeh\t\0\model\sarge/default\hmodel\sarge/default\g_redteam\\g_blueteam\\c1\5\c2\5\hc\100\w\0\l\0\tt\0\tl\0
-                    1:08 Kill: 3 2 6: Isgalamido killed Mocinha by MOD_ROCKET
-                    1:08 ClientUserinfoChanged: 4 n\Zeh\t\0\model\sarge/default\hmodel\sarge/default\g_redteam\\g_blueteam\\c1\1\c2\5\hc\100\w\0\l\0\tt\0\tl\0
-                    1:08 ClientBegin: 4
-                    1:10 Item: 3 item_armor_shard
-                    1:10 Item: 3 item_armor_shard
-                    1:10 Item: 3 item_armor_shard
-                    1:10 Item: 3 item_armor_combat
-                    1:11 Item: 4 weapon_shotgun
-                    1:11 Item: 4 ammo_shells
-                    1:16 Item: 4 item_health_large
-                    1:18 Item: 4 weapon_rocketlauncher
-                    1:18 Item: 4 ammo_rockets
-                    1:26 Kill: 1022 4 22: <world> killed Zeh by MOD_TRIGGER_HURT
-                    1:26 ClientUserinfoChanged: 2 n\Dono da Bola\t\0\model\sarge\hmodel\sarge\g_redteam\\g_blueteam\\c1\4\c2\5\hc\95\w\0\l\0\tt\0\tl\0
-                    1:26 Item: 3 weapon_railgun
-                    1:29 Item: 2 weapon_rocketlauncher
-                    1:29 Item: 3 weapon_railgun
-                    1:32 Item: 3 weapon_railgun
-                    1:32 Kill: 1022 4 22: <world> killed Zeh by MOD_TRIGGER_HURT
-                    1:35 Item: 2 item_armor_shard
-                    1:35 Item: 2 item_armor_shard
-                    1:35 Item: 2 item_armor_shard
-                    1:35 Item: 3 weapon_railgun
-                    1:38 Item: 2 item_health_large
-                    1:38 Item: 3 weapon_railgun
-                    1:41 Kill: 1022 2 19: <world> killed Dono da Bola by MOD_FALLING
-                    1:41 Item: 3 weapon_railgun
-                    1:43 Item: 2 ammo_rockets
-                    1:44 Item: 2 weapon_rocketlauncher
-                    1:46 Item: 2 item_armor_shard
-                    1:47 Item: 2 item_armor_shard
-                    1:47 Item: 2 item_armor_shard
-                    1:47 ShutdownGame:
-                    1:47 ------------------------------------------------------------
-                "#}
-            </pre>
-        </div>
-        <div>
-            <div>
-                <p>"An file input will have preference over a pasted log"</p>
-                <label>
-                    <span>"Upload a server log file:"</span>
-                    <input
-                        type="file"
-                        id="file-input"
-                        _ref=log_file_ref
-                        name="file-input"
-                        accept="application/text"
-                        on:change=submit_handler
-                    />
-                </label>
-            </div>
-                {move || {
-                    if  logs.get().is_empty() {
-                        view! { cx, <div><p>"No logs parsed yet"</p></div> }
-                    } else {
-                        view! { cx,
-                        <div>
-                            <p>"Logs parsed:"</p>
-                            <For
-                                each={move || logs.get()}
-                                key={|(match_number, _)| match_number.to_owned()}
-                                view=move |cx, (match_number, record)| {
-                                    view! {
-                                        cx,
-                                        <div>
-                                            <p>------------</p>
-                                            <h2>{format!("Match {match_number}:")}</h2>
-                                            <span>{format!("Total match kills: {}", record.total_kills)}</span>
-                                            <div>
-                                                <div>
-                                                    <h3>"Players ranking:"</h3>
-                                                    <table class="table-fixed">
-                                                        <thead>
-                                                            <tr>
-                                                                <th>"Ranking"</th>
-                                                                <th>"Player"</th>
-                                                                <th>"Kill Score"</th>
-                                                            </tr>
-                                                        </thead>
-                                                        <tbody>
-                                                            <For
-                                                                each={move || record.ranking.clone()}
-                                                                key={|ranking_position| ranking_position.player.to_owned()}
-                                                                view=move |cx, ranking_position| {
-                                                                    view! {
-                                                                        cx,
-                                                                        <tr>
-                                                                            <td>{format!("{}", ranking_position.position)}</td>
-                                                                            <td>{format!("{}", ranking_position.player)}</td>
-                                                                            <td>{format!("{}", ranking_position.kills)}</td>
-                                                                        </tr>
-                                                                    }
-                                                                }
-                                                            />
-                                                        </tbody>
-                                                    </table>
-                                                </div>
+                <div class="w-full flex flex-col gap-8">
+                    <h1 class="text-3xl font-bold text-center">"Quake 3 Arena server log parser"</h1>
 
-                                                <div>
-                                                    <h3>"Means of kills:"</h3>
-                                                    <table class="table-fixed">
-                                                        <thead>
-                                                            <tr>
-                                                                <th>"Damage source"</th>
-                                                                <th>"Kills"</th>
-                                                            </tr>
-                                                        </thead>
-                                                        <tbody>
-                                                            <For
-                                                                each={move || record.kills_by_means.clone()}
-                                                                key={|(means, _)| means.to_owned()}
-                                                                view=move |cx, (means, kills)| {
-                                                                    view! {
-                                                                        cx,
+                    <div class="w-full flex flex-col items-center gap-4">
+                        <p class="text-xl">
+                            "This application focus on parse and represent data from a Quake 3 Arena server log in a
+                            more human readable version the file. The expected file to be parsed has a similar format to the following:"
+                        </p>
+                        <div class="flex p-4 w-1/2 h-[480px] overflow-auto bg-[#3c4450] rounded-lg text-left">
+                            <pre class="text-sm">
+    {r#"
+0:00 ------------------------------------------------------------
+0:00 InitGame:
+0:25 ClientConnect: 2
+0:25 ClientUserinfoChanged: 2 n\Dono da Bola
+0:27 ClientUserinfoChanged: 2 n\Mocinha
+0:27 ClientBegin: 2
+0:29 Item: 2 weapon_rocketlauncher
+0:59 ClientConnect: 3
+0:59 ClientUserinfoChanged: 3 n\Isgalamido
+1:01 ClientBegin: 3
+1:02 Item: 3 weapon_rocketlauncher
+1:06 ClientConnect: 4
+1:08 Kill: 3 2 6: Isgalamido killed Mocinha by MOD_ROCKET
+1:08 ClientUserinfoChanged: 4 n\Zeh\
+1:08 ClientBegin: 4
+1:10 Item: 3 item_armor_combat
+1:18 Item: 4 ammo_rockets
+1:41 Kill: 1022 2 19: <world> killed Dono da Bola by MOD_FALLING
+1:41 Item: 3 weapon_railgun
+1:47 Item: 2 item_armor_shard
+1:47 ShutdownGame:
+1:47 ------------------------------------------------------------
+"#}
+                            </pre>
+                        </div>
+                    </div>
+
+                    <div>
+                        <div>
+                            <label class="text-md">
+                                <span class="block mb-2 font-medium">"Upload a server log file:"</span>
+                                <input
+                                    type="file"
+                                    accept=".log,.txt"
+                                    id="file-input"
+                                    _ref=log_file_ref
+                                    name="file-input"
+                                    on:change=submit_handler
+                                    class="block w-full border rounded-lg cursor-pointer text-gray-400 focus:outline-none bg-gray-700 border-gray-600 placeholder-gray-400"
+                                />
+                                <p class="mt-1 text-sm text-gray-300">"TXT or LOG."</p>
+                            </label>
+                        </div>
+
+                        {move || {
+                            if  logs.get().is_empty() {
+                                view! { cx,
+                                    <div  class="flex flex-col my-12 gap-12 justify-center">
+                                        <p class="text-xl text-center">"No logs parsed yet"</p>
+                                    </div> }
+                            } else {
+                                view! { cx,
+                                <div class="flex flex-col my-12 gap-12">
+                                    <For
+                                        each={move || logs.get()}
+                                        key={|(match_number, _)| match_number.to_owned()}
+                                        view=move |cx, (match_number, record)| {
+                                            let match_number = match_number.chars()
+                                                .filter(|c| c.is_numeric())
+                                                .collect::<String>()
+                                                .parse::<i32>()
+                                                .unwrap();
+
+                                            view! {
+                                                cx,
+                                                <div class="flex flex-col gap-4 w-full">
+                                                    <h2 class="text-2xl font-bold text-center">{format!("Match {match_number}")}</h2>
+                                                    <div class="flex flex-row w-full justify-around">
+                                                        <div>
+                                                            <h3 class="text-xl font-medium text-center mb-2">"Players ranking"</h3>
+                                                            <div class="relative overflow-x-auto shadow-md sm:rounded-lg">
+                                                                <table class="w-full text-sm text-left text-gray-400">
+                                                                    <thead class="text-xs uppercase bg-gray-700 text-gray-400">
                                                                         <tr>
-                                                                            <td>{format!("{means}")}</td>
-                                                                            <td>{format!("{kills}")}</td>
+                                                                            <th scope="col" class="px-6 py-3">"Ranking"</th>
+                                                                            <th scope="col" class="px-6 py-3">"Player"</th>
+                                                                            <th scope="col" class="px-6 py-3">"Kill Score"</th>
                                                                         </tr>
+                                                                    </thead>
+                                                                    <tbody>
+                                                                        <For
+                                                                            each={move || record.ranking.clone()}
+                                                                            key={|ranking_position| ranking_position.player.to_owned()}
+                                                                            view=move |cx, ranking_position| {
+                                                                                view! {
+                                                                                    cx,
+                                                                                    <tr class="border-b bg-gray-900 border-gray-700">
+                                                                                        <td class="px-6 py-4">{format!("{}", ranking_position.position)}</td>
+                                                                                        <td class="px-6 py-4">{format!("{}", ranking_position.player)}</td>
+                                                                                        <td class="px-6 py-4">{format!("{}", ranking_position.kills)}</td>
+                                                                                    </tr>
+                                                                                }
+                                                                            }
+                                                                        />
+                                                                    </tbody>
+                                                                </table>
+                                                            </div>
+                                                        </div>
+
+                                                        <div>
+                                                            <h3 class="text-xl font-medium text-center mb-2">"Means of kills"</h3>
+                                                            {
+                                                                if record.kills_by_means.is_empty() {
+                                                                    view! { cx,
+                                                                        <div>
+                                                                            <p class="text-center">"No valid means of kills registered"</p>
+                                                                        </div>
+                                                                    }
+                                                                } else {
+                                                                    view! { cx,
+                                                                        <div class="relative overflow-x-auto shadow-md sm:rounded-lg">
+                                                                            <table class="w-full text-sm text-left text-gray-400">
+                                                                                <thead class="text-xs uppercase bg-gray-700 text-gray-400">
+                                                                                    <tr>
+                                                                                        <th scope="col" class="px-6 py-3">"Damage source"</th>
+                                                                                        <th scope="col" class="px-6 py-3">"Kills"</th>
+                                                                                    </tr>
+                                                                                </thead>
+                                                                                <tbody>
+                                                                                    <For
+                                                                                        each={move || record.kills_by_means.clone()}
+                                                                                        key={|(means, _)| means.to_owned()}
+                                                                                        view=move |cx, (means, kills)| {
+                                                                                            view! {
+                                                                                                cx,
+                                                                                                <tr class="border-b bg-gray-900 border-gray-700">
+                                                                                                    <td class="px-6 py-4">{format!("{means}")}</td>
+                                                                                                    <td class="px-6 py-4">{format!("{kills}")}</td>
+                                                                                                </tr>
+                                                                                            }
+                                                                                        }
+                                                                                    />
+                                                                                </tbody>
+                                                                            </table>
+                                                                        </div>
                                                                     }
                                                                 }
-                                                            />
-                                                        </tbody>
-                                                    </table>
+                                                            }
+                                                        </div>
+                                                    </div>
+                                                    <span class="text-sm">{format!("Total match kills: {}", record.total_kills)}</span>
                                                 </div>
-                                            </div>
-                                            <p>------------</p>
-                                        </div>
-                                    }
+                                            }
+                                        }
+                                    />
+                                </div>
                                 }
-                            />
-                        </div>
+                                }
+                            }
                         }
-                    }
-                }}
-        </div>
-    }
+                    </div>
+                </div>
+            }
 }

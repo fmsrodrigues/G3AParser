@@ -19,7 +19,7 @@ pub fn App(cx: Scope) -> impl IntoView {
         <Stylesheet id="leptos" href="/pkg/q3aparser.css"/>
 
         // sets the document title
-        <Title text="Welcome to Leptos"/>
+        <Title text="Quake 3 Arena server log parser"/>
 
         // content for this welcome page
         <Router fallback=|cx| {
@@ -30,10 +30,12 @@ pub fn App(cx: Scope) -> impl IntoView {
             }
             .into_view(cx)
         }>
-            <main>
-                <Routes>
-                    <Route path="" view=|cx| view! { cx, <HomePage/> }/>
-                </Routes>
+            <main class="w-screen h-full min-h-screen pt-12 bg-[#262f3d] text-[#e8ecf0]">
+                <div class="mx-auto max-w-[1080px]">
+                    <Routes>
+                        <Route path="" view=|cx| view! { cx, <HomePage/> }/>
+                    </Routes>
+                </div>
             </main>
         </Router>
     }
