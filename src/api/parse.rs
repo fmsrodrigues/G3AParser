@@ -36,7 +36,6 @@ pub async fn parse_log_file(mut multipart: Multipart) -> Result<Json<HashMap<Str
         }
     }
 
-    dbg!(parsed_log.clone());
     Ok(Json(parsed_log))
 }
 }}

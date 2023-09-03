@@ -19,9 +19,13 @@ pub async fn file_to_u8(file: web_sys::File) -> Result<js_sys::Uint8Array, wasm_
 
 #[component]
 pub fn HomePage(cx: Scope) -> impl IntoView {
+    let (logs, set_logs) = create_signal::<Vec<(String, MatchRecord)>>(cx, Vec::new());
     let log_file_ref = create_node_ref::<Input>(cx);
 
-    pub fn submit_callback(file_ref: NodeRef<Input>) -> impl Fn(web_sys::Event) {
+    pub fn submit_callback(
+        file_ref: NodeRef<Input>,
+        set_logs: WriteSignal<Vec<(String, MatchRecord)>>,
+    ) -> impl Fn(web_sys::Event) {
         move |_event: web_sys::Event| {
             let file_input = file_ref.get().expect("could not capture file input");
 
@@ -48,12 +52,38 @@ pub fn HomePage(cx: Scope) -> impl IntoView {
                     .await
                     .expect("failed to get payload");
 
-                log!("response: {:?}", res_body);
-            })
+                let mut ordered_logs = Vec::new();
+                for (match_number, record) in res_body.iter() {
+                    ordered_logs.push((match_number.to_owned(), record.to_owned()));
+                }
+                ordered_logs.sort_by(|a, b| {
+                    let a =
+                        a.0.chars()
+                            .filter(|c| c.is_numeric())
+                            .collect::<String>()
+                            .parse::<i32>()
+                            .unwrap();
+                    let b =
+                        b.0.chars()
+                            .filter(|c| c.is_numeric())
+                            .collect::<String>()
+                            .parse::<i32>()
+                            .unwrap();
+
+                    log!("{:?} {:?}", a, b);
+                    a.cmp(&b)
+                });
+
+                set_logs(ordered_logs);
+            });
         }
     }
 
-    let submit_handler = submit_callback(log_file_ref);
+    let submit_handler = submit_callback(log_file_ref, set_logs);
+
+    create_effect(cx, move |_| {
+        log!("{:?}", &logs.get());
+    });
 
     view! { cx,
         <h1>"Quake 3 Arena server log parser"</h1>
@@ -143,6 +173,89 @@ pub fn HomePage(cx: Scope) -> impl IntoView {
                     />
                 </label>
             </div>
+                {move || {
+                    if  logs.get().is_empty() {
+                        view! { cx, <div><p>"No logs parsed yet"</p></div> }
+                    } else {
+                        view! { cx,
+                        <div>
+                            <p>"Logs parsed:"</p>
+                            <For
+                                each={move || logs.get()}
+                                key={|(match_number, _)| match_number.to_owned()}
+                                view=move |cx, (match_number, record)| {
+                                    view! {
+                                        cx,
+                                        <div>
+                                            <p>------------</p>
+                                            <h2>{format!("Match {match_number}:")}</h2>
+                                            <span>{format!("Total match kills: {}", record.total_kills)}</span>
+                                            <div>
+                                                <div>
+                                                    <h3>"Players ranking:"</h3>
+                                                    <table class="table-fixed">
+                                                        <thead>
+                                                            <tr>
+                                                                <th>"Ranking"</th>
+                                                                <th>"Player"</th>
+                                                                <th>"Kill Score"</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody>
+                                                            <For
+                                                                each={move || record.ranking.clone()}
+                                                                key={|ranking_position| ranking_position.player.to_owned()}
+                                                                view=move |cx, ranking_position| {
+                                                                    view! {
+                                                                        cx,
+                                                                        <tr>
+                                                                            <td>{format!("{}", ranking_position.position)}</td>
+                                                                            <td>{format!("{}", ranking_position.player)}</td>
+                                                                            <td>{format!("{}", ranking_position.kills)}</td>
+                                                                        </tr>
+                                                                    }
+                                                                }
+                                                            />
+                                                        </tbody>
+                                                    </table>
+                                                </div>
+
+                                                <div>
+                                                    <h3>"Means of kills:"</h3>
+                                                    <table class="table-fixed">
+                                                        <thead>
+                                                            <tr>
+                                                                <th>"Damage source"</th>
+                                                                <th>"Kills"</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody>
+                                                            <For
+                                                                each={move || record.kills_by_means.clone()}
+                                                                key={|(means, _)| means.to_owned()}
+                                                                view=move |cx, (means, kills)| {
+                                                                    view! {
+                                                                        cx,
+                                                                        <tr>
+                                                                            <td>{format!("{means}")}</td>
+                                                                            <td>{format!("{kills}")}</td>
+                                                                        </tr>
+                                                                    }
+                                                                }
+                                                            />
+                                                        </tbody>
+                                                    </table>
+                                                </div>
+                                            </div>
+                                            <p>------------</p>
+                                        </div>
+                                    }
+                                }
+                            />
+                        </div>
+                        }
+                    }
+                }}
         </div>
     }
 }

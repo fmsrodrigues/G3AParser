@@ -5,19 +5,19 @@ use std::io::{BufRead, BufReader};
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
-struct RankingPosition {
-    player: String,
-    kills: i16,
-    position: u16,
+pub struct RankingPosition {
+    pub player: String,
+    pub kills: i16,
+    pub position: u16,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct MatchRecord {
-    total_kills: i16,
+    pub total_kills: i16,
     players: HashSet<String>,
     kills: HashMap<String, i16>,
-    kills_by_means: HashMap<String, i16>,
-    ranking: Vec<RankingPosition>,
+    pub kills_by_means: HashMap<String, i16>,
+    pub ranking: Vec<RankingPosition>,
 }
 
 pub struct Parser {}
@@ -149,7 +149,7 @@ impl Parser {
             .kills
             .entry(killer.to_string())
             .and_modify(|k| *k += 1)
-            .or_insert(0);
+            .or_insert(1);
     }
 
     fn remove_kill_score_from_user(match_record: &mut MatchRecord, killed: &str) {
@@ -157,7 +157,7 @@ impl Parser {
             .kills
             .entry(killed.to_string())
             .and_modify(|k| *k -= 1)
-            .or_insert(0);
+            .or_insert(-1);
     }
 
     fn register_kill_means(match_record: &mut MatchRecord, weapon: &str) {
@@ -165,7 +165,7 @@ impl Parser {
             .kills_by_means
             .entry(weapon.to_string())
             .and_modify(|k| *k += 1)
-            .or_insert(0);
+            .or_insert(1);
     }
 
     fn generate_ranking(matches: &mut HashMap<String, MatchRecord>, current_match: &String) {
